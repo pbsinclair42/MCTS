@@ -22,7 +22,9 @@ You must also choose a hashable representation for an action as used in `getPoss
 Once these have been implemented, running MCTS is as simple as initializing your starting state, then running:
 
 ```python
-mcts = mcts.mcts(timeLimit=1000)
+from mcts import mcts
+
+mcts = mcts(timeLimit=1000)
 bestAction = mcts.search(initialState=initialState)
 ```
 
