@@ -3,8 +3,20 @@ import math
 import random
 from node import treeNode
 
+
+def randomPolicy(state):
+    while not state.isTerminal():
+        try:
+            action = random.choice(state.getPossibleActions())
+        except IndexError:
+            raise Exception("Non-terminal state has no possible actions: " + str(state))
+        state = state.takeAction(action)
+    return state.getReward()
+
+
 class mcts():
-    def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=1/math.sqrt(2), rolloutPolicy=randomPolicy):
+    def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=1 / math.sqrt(2),
+                 rolloutPolicy=randomPolicy):
         if timeLimit != None:
             if iterationLimit != None:
                 raise ValueError("Cannot have both a time limit and an iteration limit")
@@ -15,7 +27,7 @@ class mcts():
             if iterationLimit == None:
                 raise ValueError("Must have either a time limit or an iteration limit")
             # number of iterations of the search
-            if iterationLimit<1:
+            if iterationLimit < 1:
                 raise ValueError("Iteration limit must be greater than one")
             self.searchLimit = iterationLimit
             self.limitType = 'iterations'
@@ -25,7 +37,7 @@ class mcts():
     def search(self, initialState):
         self.root = treeNode(initialState, None)
 
-        if self.limitType=='time':
+        if self.limitType == 'time':
             timeLimit = time.time() + self.timeLimit / 1000
             while time.time() < timeLimit:
                 self.executeRound()
@@ -52,37 +64,58 @@ class mcts():
     def expand(self, node):
         actions = node.state.getPossibleActions()
         for action in actions:
-            if action not in node.children:
+            if action not in node.children.keys():
                 newNode = treeNode(node.state.takeAction(action), node)
                 node.children[action] = newNode
-                if len(actions)==len(node.children):
+                if len(actions) == len(node.children):
                     node.isFullyExpanded = True
                 return newNode
 
         raise Exception("Should never reach here")
 
     def backpropogate(self, node, reward):
-        while node!=None:
-            node.numVisits+=1
-            node.totalReward+=reward
+        while node != None:
+            node.numVisits += 1
+            node.totalReward += reward
             node = node.parent
 
     def getBestChild(self, node, explorationValue):
         bestValue = float("-inf")
         for child in node.children.values():
-            nodeValue = child.totalReward/child.numVisits + explorationValue*math.sqrt(2*math.log(node.numVisits)/child.numVisits)
+            nodeValue = child.totalReward / child.numVisits + explorationValue * math.sqrt(
+                2 * math.log(node.numVisits) / child.numVisits)
             if nodeValue > bestValue:
-                bestValue=nodeValue
+                bestValue = nodeValue
                 bestNode = child
         return bestNode
 
     def getAction(self, root, bestChild):
-        for action, node in root.children:
-            if node==bestChild:
+        for action, node in root.children.items():
+            if node == bestChild:
                 return action
 
-def randomPolicy(state):
-    while not state.isTerminal:
-        action = random.choice(state.getPossibleActions())
-        state = state.takeAction(action)
-    return state.reward
+
+class StateInterface():
+    def getPossibleActions(self):
+        raise NotImplementedError()
+
+    def takeAction(self, action):
+        raise NotImplementedError()
+
+    def isTerminal(self):
+        raise NotImplementedError()
+
+    def getReward(self):
+        # only needed for terminal states
+        raise NotImplementedError()
+
+    def __eq__(self, other):
+        raise NotImplementedError()
+
+
+class ActionInterface():
+    def __eq__(self, other):
+        raise NotImplementedError
+
+    def __hash__(self):
+        raise NotImplementedError()
