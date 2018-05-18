@@ -49,9 +49,6 @@ class NaughtsAndCrossesState():
                 return sum(diagonal) / 3
         return False
 
-    def __eq__(self, other):
-        return self.__class__ == other.__class__ and self.board == other.board and self.currentPlayer == other.currentPlayer
-
 
 class Action():
     def __init__(self, player, x, y):
@@ -73,7 +70,7 @@ class Action():
 
 
 initialState = NaughtsAndCrossesState()
-mcts = mcts(iterationLimit=1000)
+mcts = mcts.mcts(timeLimit=1000)
 action = mcts.search(initialState=initialState)
 
 print(action.x, action.y)

@@ -23,9 +23,6 @@ class treeNode():
         self.totalReward = 0
         self.children = {}
 
-    def __eq__(self, other):
-        return self.__class__ == other.__class__ and self.state == other.state
-
 
 class mcts():
     def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=1 / math.sqrt(2),
@@ -87,48 +84,23 @@ class mcts():
         raise Exception("Should never reach here")
 
     def backpropogate(self, node, reward):
-        while node != None:
+        while node is not None:
             node.numVisits += 1
             node.totalReward += reward
             node = node.parent
 
     def getBestChild(self, node, explorationValue):
         bestValue = float("-inf")
+        bestNodes = []
         for child in node.children.values():
             nodeValue = child.totalReward / child.numVisits + explorationValue * math.sqrt(
                 2 * math.log(node.numVisits) / child.numVisits)
-            if nodeValue > bestValue:
+            if nodeValue >= bestValue:
                 bestValue = nodeValue
-                bestNode = child
-        return bestNode
+                bestNodes.append(child)
+        return random.choice(bestNodes)
 
     def getAction(self, root, bestChild):
         for action, node in root.children.items():
-            if node == bestChild:
+            if node is bestChild:
                 return action
-
-
-class StateInterface():
-    def getPossibleActions(self):
-        raise NotImplementedError()
-
-    def takeAction(self, action):
-        raise NotImplementedError()
-
-    def isTerminal(self):
-        raise NotImplementedError()
-
-    def getReward(self):
-        # only needed for terminal states
-        raise NotImplementedError()
-
-    def __eq__(self, other):
-        raise NotImplementedError()
-
-
-class ActionInterface():
-    def __eq__(self, other):
-        raise NotImplementedError
-
-    def __hash__(self):
-        raise NotImplementedError()
