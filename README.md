@@ -6,7 +6,7 @@ This package provides a simple way of using Monte Carlo Tree Search in any perfe
 
 With pip: `pip install mcts`
 
-Without pip: Download the zip/tar.gz file of the [latest release](https://github.com/hildensia/mcts/releases), extract it, and run `python setup.py install`
+Without pip: Download the zip/tar.gz file of the [latest release](https://github.com/pbsinclair42/MCTS/releases), extract it, and run `python setup.py install`
 
 ## Quick Usage
 
@@ -27,6 +27,7 @@ from mcts import mcts
 mcts = mcts(timeLimit=1000)
 bestAction = mcts.search(initialState=initialState)
 ```
+See [naughtsandcrosses.py](https://github.com/pbsinclair42/MCTS/blob/master/naughtsandcrosses.py) for a simple example.  
 
 ## Slow Usage
 //TODO
