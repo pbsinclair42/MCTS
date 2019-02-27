@@ -95,8 +95,10 @@ class mcts():
         for child in node.children.values():
             nodeValue = child.totalReward / child.numVisits + explorationValue * math.sqrt(
                 2 * math.log(node.numVisits) / child.numVisits)
-            if nodeValue >= bestValue:
+            if nodeValue > bestValue:
                 bestValue = nodeValue
+                bestNodes = [child]
+            elif nodeValue == bestValue:
                 bestNodes.append(child)
         return random.choice(bestNodes)
 
