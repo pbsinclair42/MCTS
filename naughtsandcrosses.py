@@ -1,3 +1,5 @@
+from __future__ import division
+
 from copy import deepcopy
 from mcts import mcts
 from functools import reduce
@@ -73,4 +75,4 @@ initialState = NaughtsAndCrossesState()
 mcts = mcts(timeLimit=1000)
 action = mcts.search(initialState=initialState)
 
-print(action.x, action.y)
+print(action)
