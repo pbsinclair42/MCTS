@@ -14,6 +14,17 @@ def randomPolicy(state):
         state = state.takeAction(action)
     return state.getReward()
 
+def randomPolicyControlledDepth(state, rolloutDepth):
+    searchDepth = 0
+    while not state.isTerminal() and searchDepth < rolloutDepth:
+        try:
+            action = random.choice(state.getPossibleActions())
+        except IndexError:
+            raise Exception("Non-terminal state has no possible actions: " + str(state))
+        state = state.takeAction(action)
+        searchDepth += 1
+    return state.getReward()
+
 
 class treeNode():
     def __init__(self, state, parent):
@@ -28,7 +39,7 @@ class treeNode():
 
 class mcts():
     def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=1 / math.sqrt(2),
-                 rolloutPolicy=randomPolicy):
+                 rolloutPolicy=randomPolicy, rolloutDepth=0):
         if timeLimit != None:
             if iterationLimit != None:
                 raise ValueError("Cannot have both a time limit and an iteration limit")
@@ -44,7 +55,11 @@ class mcts():
             self.searchLimit = iterationLimit
             self.limitType = 'iterations'
         self.explorationConstant = explorationConstant
-        self.rollout = rolloutPolicy
+        if rolloutDepth == 0:
+            self.rollout = rolloutPolicy
+        else:
+            self.rollout = randomPolicyControlledDepth
+        self.rolloutDepth = rolloutDepth
 
     def search(self, initialState):
         self.root = treeNode(initialState, None)
@@ -62,7 +77,7 @@ class mcts():
 
     def executeRound(self):
         node = self.selectNode(self.root)
-        reward = self.rollout(node.state)
+        reward = self.rollout(node.state, self.rolloutDepth)
         self.backpropogate(node, reward)
 
     def selectNode(self, node):
