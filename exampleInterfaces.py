@@ -1,4 +1,8 @@
 class StateInterface():
+    def getCurrentPlayer(self):
+        # 1 for maximiser, -1 for minimiser
+        raise NotImplementedError()
+
     def getPossibleActions(self):
         raise NotImplementedError()
 
