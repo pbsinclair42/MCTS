@@ -11,6 +11,9 @@ class NaughtsAndCrossesState():
         self.board = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.currentPlayer = 1
 
+    def getCurrentPlayer(self):
+        return self.currentPlayer
+
     def getPossibleActions(self):
         possibleActions = []
         for i in range(len(self.board)):

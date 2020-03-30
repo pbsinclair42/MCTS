@@ -12,6 +12,7 @@ Without pip: Download the zip/tar.gz file of the [latest release](https://github
 
 In order to run MCTS, you must implement a `State` class which can fully describe the state of the world.  It must also implement four methods: 
 
+- `getCurrentPlayer()`: Returns 1 if it is the maximizer player's turn to choose an action, or -1 for the minimiser player
 - `getPossibleActions()`: Returns an iterable of all actions which can be taken from this state
 - `takeAction(action)`: Returns the state which results from taking action `action`
 - `isTerminal()`: Returns whether this state is a terminal state
