@@ -28,7 +28,7 @@ from mcts import mcts
 searcher = mcts(timeLimit=1000)
 bestAction = searcher.search(initialState=initialState)
 ```
-Here the unit of `timeLimit=1000` is ms. You can also use `iterationLimit=1600` to specify number of roolouts. Only and at least one in `timeLimit` and `iterationLimit` should be specified.
+Here the unit of `timeLimit=1000` is millisecond. You can also use `iterationLimit=1600` to specify the number of rollouts. Only and at least one in `timeLimit` and `iterationLimit` should be specified.
 
 See [naughtsandcrosses.py](https://github.com/pbsinclair42/MCTS/blob/master/naughtsandcrosses.py) for a simple example.
 
