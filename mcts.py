@@ -75,6 +75,7 @@ class mcts():
 
     def expand(self, node):
         actions = node.state.getPossibleActions()
+        random.shuffle(actions)
         for action in actions:
             if action not in node.children:
                 newNode = treeNode(node.state.takeAction(action), node)
@@ -108,3 +109,6 @@ class mcts():
         for action, node in root.children.items():
             if node is bestChild:
                 return action
+
+    def getTotalReward(self):
+        return self.root.totalReward
