@@ -120,7 +120,7 @@ while not currentState.isTerminal():
 
     else:
         agentName = "random"
-        action =random.choice(currentState.getPossibleActions())
+        action = random.choice(currentState.getPossibleActions())
         statistics = None
 
     currentState = currentState.takeAction(action)
