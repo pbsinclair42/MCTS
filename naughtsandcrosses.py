@@ -8,9 +8,12 @@ import random
 
 
 class NaughtsAndCrossesState():
-    def __init__(self, side=3):
-        self.side = side
-        self.board = [ [0 for _ in range(side)] for _ in range(side)]
+
+    playerNames = {1:'O', -1:'X'}
+
+    def __init__(self, gridSize=3):
+        self.gridSize = gridSize
+        self.board = [ [0 for _ in range(self.gridSize)] for _ in range(self.gridSize)]
         self.currentPlayer = 1
         self.possibleActions = None
 
@@ -18,10 +21,8 @@ class NaughtsAndCrossesState():
         for row in self.board:
             row_text = ""
             for cell in row:
-                if cell == 1:
-                    row_text += " O "
-                elif cell == -1:
-                    row_text += " X "
+                if cell in self.playerNames:
+                    row_text += f" {self.playerNames[cell]} "
                 else:
                     row_text += " . "
             print(row_text)
@@ -47,28 +48,28 @@ class NaughtsAndCrossesState():
 
     def isTerminal(self):
         for row in self.board:
-            if abs(sum(row)) == self.side:
+            if abs(sum(row)) == self.gridSize:
                 return True
         for column in list(map(list, zip(*self.board))):
-            if abs(sum(column)) == self.side:
+            if abs(sum(column)) == self.gridSize:
                 return True
         for diagonal in [[self.board[i][i] for i in range(len(self.board))],
                          [self.board[i][len(self.board) - i - 1] for i in range(len(self.board))]]:
-            if abs(sum(diagonal)) == self.side:
+            if abs(sum(diagonal)) == self.gridSize:
                 return True
         return reduce(operator.mul, sum(self.board, []), 1)
 
     def getReward(self):
         for row in self.board:
-            if abs(sum(row)) == self.side:
-                return sum(row) / self.side
+            if abs(sum(row)) == self.gridSize:
+                return sum(row) / self.gridSize
         for column in list(map(list, zip(*self.board))):
-            if abs(sum(column)) == self.side:
-                return sum(column) / self.side
+            if abs(sum(column)) == self.gridSize:
+                return sum(column) / self.gridSize
         for diagonal in [[self.board[i][i] for i in range(len(self.board))],
                          [self.board[i][len(self.board) - i - 1] for i in range(len(self.board))]]:
-            if abs(sum(diagonal)) == self.side:
-                return sum(diagonal) / self.side
+            if abs(sum(diagonal)) == self.gridSize:
+                return sum(diagonal) / self.gridSize
         return False
 
 
@@ -91,14 +92,19 @@ class Action():
         return hash((self.x, self.y, self.player))
 
 
-# Example of a game between two searchers: MCTS versus random
-mcts_player = random.choice((1, -1))
-player_name = {1:'O', -1:'X'}
+# Example of a NaughtsAndCrossesState game play between an MCTS agent and a random agent.
+# The standard 3x3 grid is randomly extended up to 10x10 in order to exercise the MCTS time ressource.
+# One of the two player is randomly assigned to the MCTS agent for purpose of correctness checking.
+# A basic statistics is provided at each MCTS turn.
 
-game_side = random.choice(list(range(3,11)))
-currentState = NaughtsAndCrossesState(side=game_side)
-currentState.show()
+playerNames = NaughtsAndCrossesState.playerNames
+mctsPlayer = random.choice(sorted(playerNames.keys()))
+
+gridSize = random.choice(list(range(3,11)))
+currentState = NaughtsAndCrossesState(gridSize)
+
 turn = 0
+currentState.show()
 
 while not currentState.isTerminal():
     turn += 1
@@ -106,35 +112,36 @@ while not currentState.isTerminal():
 
     action_count = len(currentState.getPossibleActions())
 
-    if player == mcts_player:
-        searcher = mcts(timeLimit=1_000)
-        searcher_name = "mcts-1s"
-        action = searcher.search(initialState=currentState)
-        totalReward = searcher.getTotalReward()
+    if player == mctsPlayer:
+        agent = mcts(timeLimit=1_000)
+        agentName = "mcts-1-second"
+        action = agent.search(initialState=currentState)
+        statistics = agent.getStatistics(action)
 
     else:
-        searcher_name = "random"
+        agentName = "random"
         action =random.choice(currentState.getPossibleActions())
-        totalReward = None
+        statistics = None
 
     currentState = currentState.takeAction(action)
 
-    print(f"at turn {turn} player {player_name[player]}={player} ({searcher_name}) takes action {action}" +
-          f" amongst {action_count} possibilities")
+    print(f"at turn {turn} player {playerNames[player]}={player} ({agentName})" +
+          f" takes action {action} amongst {action_count} possibilities")
 
-    if totalReward is not None:
-        if totalReward*player > 0:
-            print(f"mcts: {totalReward} total reward; winning leaves found !!!")
-        else:
-            print(f"mcts: {totalReward} total reward; no winning leaf found ...")
+    if statistics is not None:
+        print(f"mcts action statitics: {statistics['actionTotalReward']} total reward" +
+              f" over {statistics['actionNumVisits']} visits")
+
+        print(f"mcts root statitics: {statistics['rootTotalReward']} total reward" +
+              f" over {statistics['rootNumVisits']} visits")
 
     print('-'*90)
     currentState.show()
 
 print('-'*90)
-reward = currentState.getReward()
 
-if reward == 0:
-    print(f"game {game_side}x{game_side} terminates; nobody wins")
+if currentState.getReward() == 0:
+    print(f"game {gridSize}x{gridSize} terminates; nobody wins")
 else:
-    print(f"game {game_side}x{game_side} terminates; player {player_name[player]}={player} wins")
+    print(f"game {gridSize}x{gridSize} terminates" +
+          f"; player {playerNames[player]}={player} ({agentName}) wins")
