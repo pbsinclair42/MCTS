@@ -92,56 +92,51 @@ class Action():
         return hash((self.x, self.y, self.player))
 
 
-# Example of a NaughtsAndCrossesState game play between an MCTS agent and a random agent.
-# The standard 3x3 grid is randomly extended up to 10x10 in order to exercise the MCTS time ressource.
-# One of the two player is randomly assigned to the MCTS agent for purpose of correctness checking.
-# A basic statistics is provided at each MCTS turn.
+def main():
+    """Example of a NaughtsAndCrossesState game play between MCTS and random searchers.
+    The standard 3x3 grid is randomly extended up to 10x10 in order to exercise the MCTS time ressource.
+    One of the two player is randomly assigned to the MCTS searcher for purpose of correctness checking.
+    A basic statistics is provided at each MCTS turn."""
 
-playerNames = NaughtsAndCrossesState.playerNames
-mctsPlayer = random.choice(sorted(playerNames.keys()))
+    playerNames = NaughtsAndCrossesState.playerNames
+    mctsPlayer = random.choice(sorted(playerNames.keys()))
+    gridSize = random.choice(list(range(3,11)))
 
-gridSize = random.choice(list(range(3,11)))
-currentState = NaughtsAndCrossesState(gridSize)
+    currentState = NaughtsAndCrossesState(gridSize)
+    turn = 0
+    currentState.show()
+    while not currentState.isTerminal():
+        turn += 1
+        player = currentState.getCurrentPlayer()
+        action_count = len(currentState.getPossibleActions())
 
-turn = 0
-currentState.show()
+        if player == mctsPlayer:
+            searcher = mcts(timeLimit=1_000)
+            searcherName = "mcts-1-second"
+            action = searcher.search(initialState=currentState)
+            statistics = searcher.getStatistics(action)
+        else:
+            searcherName = "random"
+            action = random.choice(currentState.getPossibleActions())
+            statistics = None
 
-while not currentState.isTerminal():
-    turn += 1
-    player = currentState.getCurrentPlayer()
+        currentState = currentState.takeAction(action)
+        print(f"at turn {turn} player {playerNames[player]}={player} ({searcherName}) takes action {action} amongst {action_count} possibilities")
 
-    action_count = len(currentState.getPossibleActions())
+        if statistics is not None:
+            print(f"mcts statitics for the chosen action: {statistics['actionTotalReward']} total reward over {statistics['actionNumVisits']} visits")
+            print(f"mcts statitics for all explored actions: {statistics['rootTotalReward']} total reward over {statistics['rootNumVisits']} visits")
 
-    if player == mctsPlayer:
-        agent = mcts(timeLimit=1_000)
-        agentName = "mcts-1-second"
-        action = agent.search(initialState=currentState)
-        statistics = agent.getStatistics(action)
-
-    else:
-        agentName = "random"
-        action = random.choice(currentState.getPossibleActions())
-        statistics = None
-
-    currentState = currentState.takeAction(action)
-
-    print(f"at turn {turn} player {playerNames[player]}={player} ({agentName})" +
-          f" takes action {action} amongst {action_count} possibilities")
-
-    if statistics is not None:
-        print(f"mcts action statitics: {statistics['actionTotalReward']} total reward" +
-              f" over {statistics['actionNumVisits']} visits")
-
-        print(f"mcts root statitics: {statistics['rootTotalReward']} total reward" +
-              f" over {statistics['rootNumVisits']} visits")
+        print('-'*90)
+        currentState.show()
 
     print('-'*90)
-    currentState.show()
+    if currentState.getReward() == 0:
+        print(f"game {gridSize}x{gridSize} terminates; nobody wins")
+    else:
+        print(f"game {gridSize}x{gridSize} terminates; player {playerNames[player]}={player} ({searcherName}) wins")
 
-print('-'*90)
 
-if currentState.getReward() == 0:
-    print(f"game {gridSize}x{gridSize} terminates; nobody wins")
-else:
-    print(f"game {gridSize}x{gridSize} terminates" +
-          f"; player {playerNames[player]}={player} ({agentName}) wins")
+if __name__ == "__main__":
+    main()
+

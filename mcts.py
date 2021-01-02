@@ -96,10 +96,8 @@ class mcts():
         bestValue = float("-inf")
         bestNodes = []
         for child in node.children.values():
-            nodeValue = node.state.getCurrentPlayer() * child.totalReward / child.numVisits
-            if explorationValue != 0:
-                nodeValue += explorationValue * math.sqrt(math.log(node.numVisits) / child.numVisits)
-
+            nodeValue = (node.state.getCurrentPlayer() * child.totalReward / child.numVisits +
+                         explorationValue * math.sqrt(math.log(node.numVisits) / child.numVisits))
             if nodeValue > bestValue:
                 bestValue = nodeValue
                 bestNodes = [child]
