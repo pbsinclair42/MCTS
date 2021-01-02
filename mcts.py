@@ -27,7 +27,7 @@ class treeNode():
 
 
 class mcts():
-    def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=1 / math.sqrt(2),
+    def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=math.sqrt(2),
                  rolloutPolicy=randomPolicy):
         if timeLimit != None:
             if iterationLimit != None:
@@ -75,6 +75,7 @@ class mcts():
 
     def expand(self, node):
         actions = node.state.getPossibleActions()
+        random.shuffle(actions)
         for action in actions:
             if action not in node.children:
                 newNode = treeNode(node.state.takeAction(action), node)
@@ -95,8 +96,8 @@ class mcts():
         bestValue = float("-inf")
         bestNodes = []
         for child in node.children.values():
-            nodeValue = node.state.getCurrentPlayer() * child.totalReward / child.numVisits + explorationValue * math.sqrt(
-                2 * math.log(node.numVisits) / child.numVisits)
+            nodeValue = (node.state.getCurrentPlayer() * child.totalReward / child.numVisits +
+                         explorationValue * math.sqrt(math.log(node.numVisits) / child.numVisits))
             if nodeValue > bestValue:
                 bestValue = nodeValue
                 bestNodes = [child]
@@ -108,3 +109,12 @@ class mcts():
         for action, node in root.children.items():
             if node is bestChild:
                 return action
+
+    def getStatistics(self, action=None):
+        statistics = {}
+        statistics['rootNumVisits'] = self.root.numVisits
+        statistics['rootTotalReward'] = self.root.totalReward
+        if action is not None:
+            statistics['actionNumVisits'] = self.root.children[action].numVisits
+            statistics['actionTotalReward'] = self.root.children[action].totalReward
+        return statistics
