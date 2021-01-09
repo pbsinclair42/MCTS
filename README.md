@@ -28,7 +28,12 @@ from mcts import mcts
 searcher = mcts(timeLimit=1000)
 bestAction = searcher.search(initialState=initialState)
 ```
-Here the unit of `timeLimit=1000` is millisecond. You can also use `iterationLimit=1600` to specify the number of rollouts. Only and at least one in `timeLimit` and `iterationLimit` should be specified.
+Here the unit of `timeLimit=1000` is millisecond. You can also use `iterationLimit=1600` to specify the number of rollouts. Exactly one of `timeLimit` and `iterationLimit` should be specified. The expected reward of best action can be got by setting `needDetails` to `True` in `searcher`.
+
+```python
+resultDict = searcher.search(initialState=initialState, needDetails=True)
+print(resultDict.keys()) #currently includes dict_keys(['action', 'expectedReward'])
+```
 
 See [naughtsandcrosses.py](https://github.com/pbsinclair42/MCTS/blob/master/naughtsandcrosses.py) for a simple example.
 

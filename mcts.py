@@ -30,7 +30,7 @@ class treeNode():
         s.append("totalReward: %s"%(self.totalReward))
         s.append("numVisits: %d"%(self.numVisits))
         s.append("isTerminal: %s"%(self.isTerminal))
-        s.append("children: %s"%(self.children.keys()))
+        s.append("possibleActions: %s"%(self.children.keys()))
         return "%s: {%s}"%(self.__class__.__name__, ', '.join(s))
 
 class mcts():
@@ -53,10 +53,7 @@ class mcts():
         self.explorationConstant = explorationConstant
         self.rollout = rolloutPolicy
 
-    def search(self, initialState, needNodeValue=False):
-        """
-            do many executeRounds until the limit is reached, then return BestChild
-        """
+    def search(self, initialState, needDetails=False):
         self.root = treeNode(initialState, None)
 
         if self.limitType == 'time':
@@ -68,10 +65,9 @@ class mcts():
                 self.executeRound()
 
         bestChild = self.getBestChild(self.root, 0)
-        action,node=((action, node) for action, node in self.root.children.items() if node is bestChild).__next__()
-        if needNodeValue:
-            nodeValue = node.totalReward / node.numVisits
-            return action, nodeValue
+        action=(action for action, node in self.root.children.items() if node is bestChild).__next__()
+        if needDetails:
+            return {"action": action, "expectedReward": bestChild.totalReward / bestChild.numVisits}
         else:
             return action
 
