@@ -25,6 +25,13 @@ class treeNode():
         self.totalReward = 0
         self.children = {}
 
+    def __str__(self):
+        s=[]
+        s.append("totalReward: %s"%(self.totalReward))
+        s.append("numVisits: %d"%(self.numVisits))
+        s.append("isTerminal: %s"%(self.isTerminal))
+        s.append("possibleActions: %s"%(self.children.keys()))
+        return "%s: {%s}"%(self.__class__.__name__, ', '.join(s))
 
 class mcts():
     def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=1 / math.sqrt(2),
@@ -46,7 +53,7 @@ class mcts():
         self.explorationConstant = explorationConstant
         self.rollout = rolloutPolicy
 
-    def search(self, initialState):
+    def search(self, initialState, needDetails=False):
         self.root = treeNode(initialState, None)
 
         if self.limitType == 'time':
@@ -58,9 +65,16 @@ class mcts():
                 self.executeRound()
 
         bestChild = self.getBestChild(self.root, 0)
-        return self.getAction(self.root, bestChild)
+        action=(action for action, node in self.root.children.items() if node is bestChild).__next__()
+        if needDetails:
+            return {"action": action, "expectedReward": bestChild.totalReward / bestChild.numVisits}
+        else:
+            return action
 
     def executeRound(self):
+        """
+            execute a selection-expansion-simulation-backpropagation round
+        """
         node = self.selectNode(self.root)
         reward = self.rollout(node.state)
         self.backpropogate(node, reward)
@@ -103,8 +117,3 @@ class mcts():
             elif nodeValue == bestValue:
                 bestNodes.append(child)
         return random.choice(bestNodes)
-
-    def getAction(self, root, bestChild):
-        for action, node in root.children.items():
-            if node is bestChild:
-                return action

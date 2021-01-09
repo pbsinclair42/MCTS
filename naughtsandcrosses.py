@@ -73,9 +73,9 @@ class Action():
     def __hash__(self):
         return hash((self.x, self.y, self.player))
 
+if __name__=="__main__":
+    initialState = NaughtsAndCrossesState()
+    searcher = mcts(timeLimit=1000)
+    action = searcher.search(initialState=initialState)
 
-initialState = NaughtsAndCrossesState()
-mcts = mcts(timeLimit=1000)
-action = mcts.search(initialState=initialState)
-
-print(action)
+    print(action)
