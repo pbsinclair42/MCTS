@@ -4,20 +4,21 @@ from copy import deepcopy
 from mcts import mcts
 import random
 
-class KInARow:
+
+class KInARowState:
 
     playerNames = {1:'O', -1:'X'}
 
-    def __init__(self, kConnections=4, mColumns=7, nRows=6):
-        self.kConnections = kConnections
+    def __init__(self, mColumns=7, nRows=6, kConnections=4):
         self.mColumns = mColumns
         self.nRows = nRows
+        self.kConnections = kConnections
         self.board = [ [0 for _ in range(self.mColumns)] for _ in range(self.nRows)]
-        self.currentPlayer = max(KInARow.playerNames.keys())
+        self.currentPlayer = max(KInARowState.playerNames.keys())
         self.isTerminated = None
         self.reward = None
         self.possibleActions = None
-        self.winMove = None
+        self.winingPattern = None
 
     def show(self):
         for row in reversed(self.board):
@@ -39,8 +40,8 @@ class KInARow:
                 for rowIndex in range(self.nRows):
                     if self.board[rowIndex][columnIndex] == 0:
                         self.possibleActions.append(Action(player=self.currentPlayer,
-                                                           rowIndex=rowIndex,
-                                                           columnIndex=columnIndex))
+                                                           columnIndex=columnIndex,
+                                                           rowIndex=rowIndex))
                         break
         return self.possibleActions
 
@@ -50,7 +51,7 @@ class KInARow:
         newState.currentPlayer = self.currentPlayer * -1
         newState.isTerminated = None
         newState.possibleActions = None
-        newState.winMove = None
+        newState.winingPattern = None
         return newState
 
     def isTerminal(self):
@@ -64,7 +65,7 @@ class KInARow:
                 if lineReward != 0:
                     self.isTerminated = True
                     self.reward = lineReward
-                    self.winMove = "k-in-row"
+                    self.winingPattern = "k-in-row"
                     break
 
             if not self.isTerminated:
@@ -76,7 +77,7 @@ class KInARow:
                     if lineReward != 0:
                         self.isTerminated = True
                         self.reward = lineReward
-                        self.winMove = "k-in-column"
+                        self.winingPattern = "k-in-column"
                         break
 
             if not self.isTerminated:
@@ -91,7 +92,7 @@ class KInARow:
                     if lineReward != 0:
                         self.isTerminated = True
                         self.reward = lineReward
-                        self.winMove = "k-in-diagonal"
+                        self.winingPattern = "k-in-diagonal"
                         break
 
             if not self.isTerminated:
@@ -106,7 +107,7 @@ class KInARow:
                     if lineReward != 0:
                         self.isTerminated = True
                         self.reward = lineReward
-                        self.winMove = "k-in-antidiagonal"
+                        self.winingPattern = "k-in-antidiagonal"
                         break
 
             if not self.isTerminated and len(self.getPossibleActions()) == 0:
@@ -123,7 +124,7 @@ class KInARow:
     def getLineReward(self, line):
         lineReward = 0
         if len(line) >= self.kConnections:
-            for player in KInARow.playerNames.keys():
+            for player in KInARowState.playerNames.keys():
                 playerLine = [x == player for x in line]
                 playerConnections = 0
                 for x in playerLine:
@@ -140,13 +141,13 @@ class KInARow:
 
 
 class Action():
-    def __init__(self, player, rowIndex, columnIndex):
+    def __init__(self, player, columnIndex, rowIndex):
         self.player = player
         self.rowIndex = rowIndex
         self.columnIndex = columnIndex
 
     def __str__(self):
-        return str((self.rowIndex, self.columnIndex))
+        return str((self.columnIndex, self.rowIndex))
 
     def __repr__(self):
         return str(self)
@@ -154,37 +155,47 @@ class Action():
     def __eq__(self, other):
         return self.__class__ == (other.__class__ and
                                   self.player == other.player and
-                                  self.rowIndex == other.rowIndex and
-                                  self.columnIndex == other.columnIndex)
+                                  self.columnIndex == other.columnIndex and
+                                  self.rowIndex == other.rowIndex)
 
     def __hash__(self):
-        return hash((self.rowIndex, self.columnIndex, self.player))
+        return hash((self.columnIndex, self.rowIndex, self.player))
+
+
+def extractStatistics(searcher, action=None):
+    statistics = {}
+    statistics['rootNumVisits'] = searcher.root.numVisits
+    statistics['rootTotalReward'] = searcher.root.totalReward
+    if action is not None:
+        statistics['actionNumVisits'] = searcher.root.children[action].numVisits
+        statistics['actionTotalReward'] = searcher.root.children[action].totalReward
+    return statistics
 
 
 def main():
-    """Example of a KInARow game play between MCTS and random searchers.
+    """Example of a "k-in-a-row" game with gravity like "Connect Four".
 
-    The kConnections and mColumns x nRows board are randomly chosen
+    The match occurs between two MCTS searchers.
+
+    The kConnections and (mColumns, nRows) board are randomly chosen
     in order to exercise the MCTS time ressource.
 
-    One of the two player is randomly assigned to the MCTS searcher
-    for purpose of correctness checking.
-
-    A basic statistics is provided at each MCTS turn."""
+    Basic MCTS statistics is provided."""
 
     searchers = {}
-    searchers["mcts-100i"] = mcts(iterationLimit=200)
-    searchers["mcts-50i"] = mcts(iterationLimit=100)
+    searchers["mcts-1500ms"] = mcts(timeLimit=1_500)
+    searchers["mcts-1000ms"] = mcts(timeLimit=1_000)
+    searchers["mcts-500ms"] = mcts(timeLimit=500)
+    searchers["mcts-250ms"] = mcts(timeLimit=250)
 
-    playerNames = KInARow.playerNames
+    playerNames = KInARowState.playerNames
 
     playerSearcherNames = {}
     for player in sorted(playerNames.keys()):
          playerSearcherNames[player] = random.choice(sorted(searchers.keys()))
 
-    (k, m, n) = random.choice([(4, 7, 6)])
-    currentState = KInARow(kConnections=k, mColumns=m, nRows=n)
-
+    (m, n, k) = random.choice([(7, 6, 4), (8, 7, 5), (9, 8, 6)])
+    currentState = KInARowState(mColumns=m, nRows=n, kConnections=k)
     turn = 0
     currentState.show()
     while not currentState.isTerminal():
@@ -196,12 +207,12 @@ def main():
         searcher = searchers[searcherName]
 
         action = searcher.search(initialState=currentState)
-        statistics = searcher.getStatistics(action)
+        statistics = extractStatistics(searcher, action)
 
         currentState = currentState.takeAction(action)
 
         print(f"at turn {turn} player {playerNames[player]}={player} ({searcherName})" +
-              f" takes action {action} amongst {action_count} possibilities")
+              f" takes action (column, row)={action} amongst {action_count} possibilities")
 
         print(f"mcts statitics for the chosen action: {statistics['actionTotalReward']} total reward" +
               f" over {statistics['actionNumVisits']} visits")
@@ -214,13 +225,12 @@ def main():
 
     print('-'*90)
     if currentState.getReward() == 0:
-        print(f"game k={k} mxn={m}x{n} terminates; nobody wins")
+        print(f"game mxn={m}x{n} k={k} terminates; nobody wins")
     else:
-        print(f"game k={k} mxn={m}x{n} terminates;" +
+        print(f"game mxn={m}x{n} k={k} terminates;" +
               f" player {playerNames[player]}={player} ({searcherName}) wins" +
-              f" by {currentState.winMove}")
+              f" with pattern {currentState.winingPattern}")
 
 
 if __name__ == "__main__":
     main()
-
