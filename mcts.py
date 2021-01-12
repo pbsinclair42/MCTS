@@ -109,12 +109,3 @@ class mcts():
         for action, node in root.children.items():
             if node is bestChild:
                 return action
-
-    def getStatistics(self, action=None):
-        statistics = {}
-        statistics['rootNumVisits'] = self.root.numVisits
-        statistics['rootTotalReward'] = self.root.totalReward
-        if action is not None:
-            statistics['actionNumVisits'] = self.root.children[action].numVisits
-            statistics['actionTotalReward'] = self.root.children[action].totalReward
-        return statistics

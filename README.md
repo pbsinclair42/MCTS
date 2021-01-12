@@ -12,11 +12,11 @@ Without pip: Download the zip/tar.gz file of the [latest release](https://github
 
 In order to run MCTS, you must implement a `State` class which can fully describe the state of the world.  It must also implement the following methods:
 
-- `getCurrentPlayer()`: Returns 1 if it is the maximizer player's turn to choose an action, or -1 for the minimizer player
+- `getCurrentPlayer()`: Returns 1 if it is the maximizer player's turn to choose an action, or -1 for the minimiser player
 - `getPossibleActions()`: Returns an iterable of all actions which can be taken from this state
 - `takeAction(action)`: Returns the state which results from taking action `action`
 - `isTerminal()`: Returns whether this state is a terminal state
-- `getReward()`: Returns the reward for this state: 0 for a draw, positive for a win by maximizer player or negative for a win by the minimizer player.  Only needed for terminal states.
+- `getReward()`: Returns the reward for this state: 0 for a draw, positive for a win by maximizer player or negative for a win by the minimizer player. Only needed for terminal states.
 
 You must also choose a hashable representation for an action as used in `getPossibleActions` and `takeAction`.  Typically this would be a class with a custom `__hash__` method, but it could also simply be a tuple or a string.
 
@@ -29,22 +29,23 @@ currentState = MyState()
 ...
 searcher = mcts(timeLimit=1000)
 bestAction = searcher.search(initialState=currentState)
-currentState = currentState.takeAction(action)
 ...
-
 ```
-See [naughtsandcrosses.py](https://github.com/pbsinclair42/MCTS/blob/master/naughtsandcrosses.py) for a simple example.
+See [naughtsandcrosses.py](./naughtsandcrosses.py) for a simple example.
 
-## Detailed usage
-A few customizations are possible through the `mcts` constructor:
+See [connectmnk.py](./connectmnk.py) for another example that runs a full *Connect(m,n,k,1,1)* game between two MCTS searchers.
 
-- The number of MCTS search rounds can be limited by either a given time limit or a given iteration number. 
-- The exploration constant $c$, which appears in the UCT score $w_i/n_i + c\sqrt{{ln N_i}/n_i}$ with theoretical default setting $c=\sqrt 2$, can be adapted to your game.
-- The default uniform random rollout/playout policy can be changed.
+When initializing the MCTS searcher, there are a few optional parameters that can be used to optimize the search:
 
-A few statistics can be retrieved after each MCTS search call (see `naughtsandcrosses.py` example)
+- `timeLimit`: the maximum duration of the search in milliseconds. Exactly one of `timeLimit` and `iterationLimit` must be set.
+- `iterationLimit`: the maximum number of search iterations to be carried out. Exactly one of `timeLimit` and `iterationLimit` must be set.
+- `explorationConstant`: a weight used when searching to help the algorithm prioritize between exploring unknown areas vs deeper exploring areas it currently believes to be valuable. The higher this constant, the more the algorithm will prioritize exploring unknown areas. Default value is √2.
+- `rolloutPolicy`: the policy to be used in the roll-out phase when simulating one full play-out. Default is a random uniform policy
 
-More of MCTS theory could be found at https://en.wikipedia.org/wiki/Monte_Carlo_tree_search and cited references.
+
+
+## Detailed Information
+//TODO
 
 ## Collaborating
 
