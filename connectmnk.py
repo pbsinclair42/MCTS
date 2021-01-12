@@ -1,11 +1,21 @@
 from __future__ import division
 
-from copy import deepcopy
+import copy
 from mcts import mcts
 import random
 
 
-class KInARowState:
+class ConnectMNKState:
+    """ConnectMNKState models a Connect(m,n,k,1,1) game that generalizes
+    the famous "Connect Four" itself equal to the Connect(7,6,4,1,1) game.
+
+    Background from wikipedia:
+    Connect(m,n,k,p,q) games are another generalization of gomoku to a board
+    with m×n intersections, k in a row needed to win, p stones for each player
+    to place, and q stones for the first player to place for the first move
+    only. Each player may play only at the lowest unoccupied place in a column.
+    In particular, Connect(m,n,6,2,1) is called Connect6.
+    """
 
     playerNames = {1:'O', -1:'X'}
 
@@ -14,20 +24,26 @@ class KInARowState:
         self.nRows = nRows
         self.kConnections = kConnections
         self.board = [ [0 for _ in range(self.mColumns)] for _ in range(self.nRows)]
-        self.currentPlayer = max(KInARowState.playerNames.keys())
+        self.currentPlayer = max(ConnectMNKState.playerNames.keys())
         self.isTerminated = None
         self.reward = None
         self.possibleActions = None
         self.winingPattern = None
 
     def show(self):
-        for row in reversed(self.board):
+        rowText = ""
+        for columnIndex in range(self.mColumns):
+            rowText += f" {columnIndex % 10} "
+        print(rowText)
+
+        for rowIndex in reversed(range(self.nRows)):
             rowText = ""
-            for x in row:
+            for x in self.board[rowIndex]:
                 if x in self.playerNames:
                     rowText += f" {self.playerNames[x]} "
                 else:
                     rowText += " . "
+            rowText += f" {rowIndex % 10} "
             print(rowText)
 
     def getCurrentPlayer(self):
@@ -39,14 +55,16 @@ class KInARowState:
             for columnIndex in range(self.mColumns):
                 for rowIndex in range(self.nRows):
                     if self.board[rowIndex][columnIndex] == 0:
-                        self.possibleActions.append(Action(player=self.currentPlayer,
-                                                           columnIndex=columnIndex,
-                                                           rowIndex=rowIndex))
+                        action = Action(player=self.currentPlayer,
+                                        columnIndex=columnIndex,
+                                        rowIndex=rowIndex)
+                        self.possibleActions.append(action)
                         break
         return self.possibleActions
 
     def takeAction(self, action):
-        newState = deepcopy(self)
+        newState = copy.copy(self)
+        newState.board = copy.deepcopy(newState.board)
         newState.board[action.rowIndex][action.columnIndex] = action.player
         newState.currentPlayer = self.currentPlayer * -1
         newState.isTerminated = None
@@ -55,13 +73,11 @@ class KInARowState:
         return newState
 
     def isTerminal(self):
-
         if self.isTerminated is None:
-
             self.isTerminated = False
             for rowIndex in range(self.nRows):
                 line = self.board[rowIndex]
-                lineReward = self.getLineReward(line)
+                lineReward = self.__getLineReward(line)
                 if lineReward != 0:
                     self.isTerminated = True
                     self.reward = lineReward
@@ -73,7 +89,7 @@ class KInARowState:
                     line = []
                     for rowIndex in range(self.nRows):
                         line.append(self.board[rowIndex][columnIndex])
-                    lineReward = self.getLineReward(line)
+                    lineReward = self.__getLineReward(line)
                     if lineReward != 0:
                         self.isTerminated = True
                         self.reward = lineReward
@@ -88,7 +104,7 @@ class KInARowState:
                         rowIndex = columnIndex + parameter
                         if 0 <= rowIndex < self.nRows:
                             line.append(self.board[rowIndex][columnIndex])
-                    lineReward = self.getLineReward(line)
+                    lineReward = self.__getLineReward(line)
                     if lineReward != 0:
                         self.isTerminated = True
                         self.reward = lineReward
@@ -103,7 +119,7 @@ class KInARowState:
                         rowIndex = -columnIndex + parameter
                         if 0 <= rowIndex < self.nRows:
                             line.append(self.board[rowIndex][columnIndex])
-                    lineReward = self.getLineReward(line)
+                    lineReward = self.__getLineReward(line)
                     if lineReward != 0:
                         self.isTerminated = True
                         self.reward = lineReward
@@ -116,15 +132,10 @@ class KInARowState:
 
         return self.isTerminated
 
-    def getReward(self):
-        assert self.isTerminal()
-        assert self.reward is not None
-        return self.reward
-
-    def getLineReward(self, line):
+    def __getLineReward(self, line):
         lineReward = 0
         if len(line) >= self.kConnections:
-            for player in KInARowState.playerNames.keys():
+            for player in ConnectMNKState.playerNames.keys():
                 playerLine = [x == player for x in line]
                 playerConnections = 0
                 for x in playerLine:
@@ -138,6 +149,11 @@ class KInARowState:
                 if lineReward != 0:
                     break
         return lineReward
+
+    def getReward(self):
+        assert self.isTerminal()
+        assert self.reward is not None
+        return self.reward
 
 
 class Action():
@@ -162,25 +178,23 @@ class Action():
         return hash((self.columnIndex, self.rowIndex, self.player))
 
 
-def extractStatistics(searcher, action=None):
+def extractStatistics(searcher, action):
     statistics = {}
     statistics['rootNumVisits'] = searcher.root.numVisits
     statistics['rootTotalReward'] = searcher.root.totalReward
-    if action is not None:
-        statistics['actionNumVisits'] = searcher.root.children[action].numVisits
-        statistics['actionTotalReward'] = searcher.root.children[action].totalReward
+    statistics['actionNumVisits'] = searcher.root.children[action].numVisits
+    statistics['actionTotalReward'] = searcher.root.children[action].totalReward
     return statistics
 
 
 def main():
-    """Example of a "k-in-a-row" game with gravity like "Connect Four".
+    """Run a full match between two MCTS searchers, possibly with different
+    parametrization, playing a Connect(m,n,k) game.
 
-    The match occurs between two MCTS searchers.
+    Extraction of MCTS statistics is examplified.
 
-    The kConnections and (mColumns, nRows) board are randomly chosen
-    in order to exercise the MCTS time ressource.
-
-    Basic MCTS statistics is provided."""
+    The game parameters (m,n,k) are randomly chosen.
+    """
 
     searchers = {}
     searchers["mcts-1500ms"] = mcts(timeLimit=1_500)
@@ -188,14 +202,20 @@ def main():
     searchers["mcts-500ms"] = mcts(timeLimit=500)
     searchers["mcts-250ms"] = mcts(timeLimit=250)
 
-    playerNames = KInARowState.playerNames
+    playerNames = ConnectMNKState.playerNames
 
     playerSearcherNames = {}
     for player in sorted(playerNames.keys()):
          playerSearcherNames[player] = random.choice(sorted(searchers.keys()))
 
-    (m, n, k) = random.choice([(7, 6, 4), (8, 7, 5), (9, 8, 6)])
-    currentState = KInARowState(mColumns=m, nRows=n, kConnections=k)
+    runnableGames = list()
+    runnableGames.append((3, 3, 3))
+    runnableGames.append((7, 6, 4))
+    runnableGames.append((8, 7, 5))
+    runnableGames.append((9, 8, 6))
+    (m, n, k) = random.choice(runnableGames)
+    currentState = ConnectMNKState(mColumns=m, nRows=n, kConnections=k)
+
     turn = 0
     currentState.show()
     while not currentState.isTerminal():
@@ -208,26 +228,25 @@ def main():
 
         action = searcher.search(initialState=currentState)
         statistics = extractStatistics(searcher, action)
-
         currentState = currentState.takeAction(action)
 
         print(f"at turn {turn} player {playerNames[player]}={player} ({searcherName})" +
               f" takes action (column, row)={action} amongst {action_count} possibilities")
 
-        print(f"mcts statitics for the chosen action: {statistics['actionTotalReward']} total reward" +
-              f" over {statistics['actionNumVisits']} visits")
-
-        print(f"mcts statitics for all explored actions: {statistics['rootTotalReward']} total reward" +
+        print("mcts statitics:" +
+              f" chosen action= {statistics['actionTotalReward']} total reward" +
+              f" over {statistics['actionNumVisits']} visits /"
+              f" all explored actions= {statistics['rootTotalReward']} total reward" +
               f" over {statistics['rootNumVisits']} visits")
 
-        print('-'*90)
+        print('-'*120)
         currentState.show()
 
-    print('-'*90)
+    print('-'*120)
     if currentState.getReward() == 0:
-        print(f"game mxn={m}x{n} k={k} terminates; nobody wins")
+        print(f"Connect(m={m},n={n},k={k}) game terminates; nobody wins")
     else:
-        print(f"game mxn={m}x{n} k={k} terminates;" +
+        print(f"Connect(m={m},n={n},k={k}) game terminates;" +
               f" player {playerNames[player]}={player} ({searcherName}) wins" +
               f" with pattern {currentState.winingPattern}")
 
