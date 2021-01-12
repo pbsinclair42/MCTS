@@ -75,7 +75,7 @@ class Action():
 
 
 initialState = NaughtsAndCrossesState()
-mcts = mcts(timeLimit=1000)
-action = mcts.search(initialState=initialState)
+searcher = mcts(timeLimit=1000)
+action = searcher.search(initialState=initialState)
 
 print(action)
