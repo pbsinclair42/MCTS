@@ -38,6 +38,30 @@ print(resultDict.keys()) #currently includes dict_keys(['action', 'expectedRewar
 See [naughtsandcrosses.py](https://github.com/pbsinclair42/MCTS/blob/master/naughtsandcrosses.py) for a simple example.
 
 ## Slow Usage
+
+### Write Your Own Policy
+
+The default policy for this package is `randomPolicy` defined in `mcts.py`. Its structure is
+
+```
+def randomPolicy(state):
+    while not state.isTerminal():
+        action = random.choice(state.getPossibleActions())
+        state = state.takeAction(action)
+    return state.getReward()
+```
+
+By substituting it with a stronger policy, you can make the search more efficient. The new policy should be a function which takes `state` as its input and return reward from the point of view of `state`'s current player and will be hand over to mcts by changing `rolloutPolicy=randomPolicy` in `mcts`'s construct function. Pay attention to the sign of reward the policy function returned. Or it will play for its opponent. For example, suppose I have trained a neural network which can estimate the expected reward even the state is not terminal; I can use it to accelerate the rollout
+
+```
+def nnPolicy(state):
+    if state.isTerminal():
+        return state.getReward()
+    else:
+        return reward_estimated_by_neural_network
+```
+
+### More
 //TODO
 
 ## Collaborating
