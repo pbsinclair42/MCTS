@@ -39,7 +39,8 @@ class NaughtsAndCrossesState():
                          [self.board[i][len(self.board) - i - 1] for i in range(len(self.board))]]:
             if abs(sum(diagonal)) == 3:
                 return True
-        return reduce(operator.mul, sum(self.board, []), 1)
+        return reduce(operator.mul, sum(self.board, []), 1) != 0
+
 
     def getReward(self):
         for row in self.board:
@@ -52,7 +53,7 @@ class NaughtsAndCrossesState():
                          [self.board[i][len(self.board) - i - 1] for i in range(len(self.board))]]:
             if abs(sum(diagonal)) == 3:
                 return sum(diagonal) / 3
-        return False
+        return 0
 
 
 class Action():

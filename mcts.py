@@ -34,7 +34,7 @@ class treeNode():
         return "%s: {%s}"%(self.__class__.__name__, ', '.join(s))
 
 class mcts():
-    def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=1 / math.sqrt(2),
+    def __init__(self, timeLimit=None, iterationLimit=None, explorationConstant=math.sqrt(2),
                  rolloutPolicy=randomPolicy):
         if timeLimit != None:
             if iterationLimit != None:
@@ -109,8 +109,8 @@ class mcts():
         bestValue = float("-inf")
         bestNodes = []
         for child in node.children.values():
-            nodeValue = node.state.getCurrentPlayer() * child.totalReward / child.numVisits + explorationValue * math.sqrt(
-                2 * math.log(node.numVisits) / child.numVisits)
+            nodeValue = (node.state.getCurrentPlayer() * child.totalReward / child.numVisits +
+                         explorationValue * math.sqrt(math.log(node.numVisits) / child.numVisits))
             if nodeValue > bestValue:
                 bestValue = nodeValue
                 bestNodes = [child]
