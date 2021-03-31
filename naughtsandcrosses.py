@@ -78,20 +78,20 @@ def test_01():
     # 1 first 1 step win
     # deep=1,2: {(0, 1): False, (0, 2): 1.0, (1, 2): False, (2, 1): False, (2, 2): False}
     # deep>=3 : {(0, 1): 1.0, (0, 2): 1.0, (1, 2): False, (2, 1): 1.0, (2, 2): 1.0}
-    #initialState.board = [[-1, 0, 0], [-1, 1, 0], [1, 0, 0]]
-    #initialState.currentPlayer = 1
+    initialState.board = [[-1, 0, 0], [-1, 1, 0], [1, 0, 0]]
+    initialState.currentPlayer = 1
 
     # 1 first 3 step win
     # deep>=3 : {(0, 0): False, (0, 1): False, (1, 2): False, (2, 1): 1.0, (2, 2): 1.0}
     # deep=2  : {(0, 0): False, (0, 1): False, (1, 2): False, (2, 1): False, (2, 2): False}
-    initialState.board = [[0, 0, -1], [-1, 1, 0], [1, 0, 0]]
-    initialState.currentPlayer = 1
+    #initialState.board = [[0, 0, -1], [-1, 1, 0], [1, 0, 0]]
+    #initialState.currentPlayer = 1
 
     from mcts import abpruning
-    searcher=abpruning(deep=2,safemargin=0.1,gameinf=65535)
+    searcher=abpruning(deep=3,safemargin=0.1,gameinf=65535)
     action=searcher.search(initialState,needDetails=True)
-    print(action)
     print(searcher.children)
+    print(searcher.counter)
 
 if __name__=="__main__":
     #initialState = NaughtsAndCrossesState()

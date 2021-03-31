@@ -124,15 +124,17 @@ class abpruning():
         """
             deep: how many layers to be search, must >= 1
             safemargin: break condition beta <= alpha --> (beta + self.safemargin) <= alpha
-            gameinf: a number which will never be reached by getReward
+            gameinf: an upper bound of getReward() return values used as "inf" in algorithm
         """
-        self.deep=deep
-        self.safemargin=safemargin
-        self.gameinf=gameinf
+        self.deep = deep
+        self.safemargin = safemargin
+        self.gameinf = gameinf
+        self.counter = 0
 
     def search(self, initialState, needDetails=False):
         children={}
         for action in initialState.getPossibleActions():
+            self.counter += 1
             val = self.alphabeta(initialState.takeAction(action), self.deep-1, -1*self.gameinf, self.gameinf)
             children[action] = val
         self.children = children
@@ -152,6 +154,7 @@ class abpruning():
 
     def alphabeta(self, node, deep, alpha, beta):
         if deep==0 or node.isTerminal():
+            self.counter += 1
             return node.getReward()
 
         CurrentPlayer=node.getCurrentPlayer()
@@ -159,6 +162,7 @@ class abpruning():
             maxeval = -1*self.gameinf
             actions = node.getPossibleActions()
             for action in actions:
+                self.counter += 1
                 val = self.alphabeta(node.takeAction(action), deep-1, alpha, beta)
                 maxeval = max(val, maxeval)
                 alpha = max(val, alpha)
@@ -169,6 +173,7 @@ class abpruning():
             mineval = self.gameinf
             actions = node.getPossibleActions()
             for action in actions:
+                self.counter += 1
                 val = self.alphabeta(node.takeAction(action), deep-1, alpha, beta)
                 mineval = min(val, mineval)
                 beta = min(val, beta)
