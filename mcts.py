@@ -117,3 +117,63 @@ class mcts():
             elif nodeValue == bestValue:
                 bestNodes.append(child)
         return random.choice(bestNodes)
+
+
+class abpruning():
+    def __init__(self, deep=3, safemargin=0.1, gameinf=65535):
+        """
+            deep: how many layers to be search, must >= 1
+            safemargin: break condition beta <= alpha --> (beta + self.safemargin) <= alpha
+            gameinf: a number which will never be reached by getReward
+        """
+        self.deep=deep
+        self.safemargin=safemargin
+        self.gameinf=gameinf
+
+    def search(self, initialState, needDetails=False):
+        children={}
+        for action in initialState.getPossibleActions():
+            val = self.alphabeta(initialState.takeAction(action), self.deep-1, -1*self.gameinf, self.gameinf)
+            children[action] = val
+        self.children = children
+
+        """CurrentPlayer=initialState.getCurrentPlayer()
+        if CurrentPlayer==1:
+            bestaction = max(self.children.items(),key=lambda x: x[1])
+        elif CurrentPlayer==-1:
+            bestaction = min(self.children.items(),key=lambda x: x[1])
+        else:
+            raise Exception("getCurrentPlayer() should return 1 or -1 rather than %s"%(CurrentPlayer,))
+
+        if needDetails:
+            return {"action": bestaction[0], "expectedReward": bestaction[1]}
+        else:
+            return bestaction[0]"""
+
+    def alphabeta(self, node, deep, alpha, beta):
+        if deep==0 or node.isTerminal():
+            return node.getReward()
+
+        CurrentPlayer=node.getCurrentPlayer()
+        if CurrentPlayer==1:
+            maxeval = -1*self.gameinf
+            actions = node.getPossibleActions()
+            for action in actions:
+                val = self.alphabeta(node.takeAction(action), deep-1, alpha, beta)
+                maxeval = max(val, maxeval)
+                alpha = max(val, alpha)
+                if (beta + self.safemargin) <= alpha:
+                    break
+            return maxeval
+        elif CurrentPlayer==-1:
+            mineval = self.gameinf
+            actions = node.getPossibleActions()
+            for action in actions:
+                val = self.alphabeta(node.takeAction(action), deep-1, alpha, beta)
+                mineval = min(val, mineval)
+                beta = min(val, beta)
+                if (beta + self.safemargin) <= alpha:
+                    break
+            return mineval
+        else:
+            raise Exception("getCurrentPlayer() should return 1 or -1 rather than %s"%(CurrentPlayer,))
