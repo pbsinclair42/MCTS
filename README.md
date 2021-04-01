@@ -50,10 +50,9 @@ bestAction=searcher.search(initialState)
 The parameters for `abpruning`'s construction function are
 
 * deep      : search deepth;
-* safemargin: normally alpha-beta pruning will break when `beta <= alpha`, safemargin strengthen this to `beta + safemargin <= alpha` for situations where eval function is not very accurate;
-* gameinf   : an upper bound of getReward() return values used as "inf" in algorithm.
+* gameinf   : an upper bound of getReward() return values, used as "inf" in algorithm.
 
-Details of chlidren can be found in `searcher.children` after `search()` is called. `searcher.children` is a dictinary looks like {action:value}.
+After `search()` is called, details of children can be found in `searcher.children`, and `searcher.counter` records how many leaf nodes are visited. `searcher.children` is a dictinary looks like {action:value}.
 
 ## Slow Usage
 
