@@ -80,21 +80,21 @@ def test_01():
     # "1" first 1 step win
     # deep=1,2: {(0, 1): False, (0, 2): 1.0, (1, 2): False, (2, 1): False, (2, 2): False}
     # deep>=3 : {(0, 1): 1.0, (0, 2): 1.0, (1, 2): False, (2, 1): 1.0, (2, 2): 1.0}
-    # searcher.counter| no pruning| vanilla alphabeta
-    # deep=2          | 17        | 17
-    # deep=3          | 49        | 31
-    initialState.board = [[-1, 0, 0], [-1, 1, 0], [1, 0, 0]]
+    # searcher.counter| no pruning| vanilla alphabeta| n_killer=2
+    # deep=2          | 17        | 17               | 17
+    # deep=3          | 49        | 31               | 28
+    #initialState.board = [[-1, 0, 0], [-1, 1, 0], [1, 0, 0]]
 
     # "1" first 3 step win
     # deep=1,2: {(0, 0): False, (0, 1): False, (1, 2): False, (2, 1): False, (2, 2): False}
     # deep>=3 : {(0, 0): False, (0, 1): False, (1, 2): False, (2, 1): 1.0, (2, 2): 1.0}
-    # searcher.counter| no pruning| vanilla alphabeta
-    # deep=2          | 20        | 20
-    # deep=3          | 60        | 43
+    # searcher.counter| no pruning| vanilla alphabeta| n_killer=2
+    # deep=2          | 20        | 20               | 20
+    # deep=3          | 60        | 43               | 37
     initialState.board = [[0, 0, -1], [-1, 1, 0], [1, 0, 0]]
 
     from mcts import abpruning
-    searcher=abpruning(deep=3)
+    searcher=abpruning(deep=3,n_killer=2)
     action=searcher.search(initialState,needDetails=True)
     print(searcher.children)
     print(searcher.counter)

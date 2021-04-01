@@ -3,6 +3,7 @@ from __future__ import division
 import time
 import math
 import random
+import heapq
 
 
 def randomPolicy(state):
@@ -122,61 +123,77 @@ def trivialPolicy(state):
     return state.getReward()
 
 class abpruning():
-    def __init__(self, deep=3, gameinf=65535, rolloutPolicy = trivialPolicy):
+    def __init__(self, deep, rolloutPolicy = trivialPolicy, n_killer = 2, gameinf=65535):
         """
             deep: how many layers to be search, must >= 1
             gameinf: an upper bound of getReward() return values used as "inf" in algorithm
         """
         self.deep = deep
         self.rollout = rolloutPolicy
+        self.n_killer = n_killer
         self.gameinf = gameinf
         self.counter = 0
 
     def search(self, initialState, needDetails=False):
-        children={}
+        children = {}
+        killers = {} # best actions of brother branches, for killer heuristic optimization
         for action in initialState.getPossibleActions():
-            val = self.alphabeta(initialState.takeAction(action), self.deep-1, -1*self.gameinf, self.gameinf)
+            val,ks = self.alphabeta(initialState.takeAction(action), self.deep-1, -1*self.gameinf, self.gameinf, killers = killers)
             children[action] = val
+            for k in ks:
+                killers[k] = killers.setdefault(k,0) + 1
         self.children = children
 
         """CurrentPlayer=initialState.getCurrentPlayer()
         if CurrentPlayer==1:
-            bestaction = max(self.children.items(),key=lambda x: x[1])
+            bestAction = max(self.children.items(),key=lambda x: x[1])
         elif CurrentPlayer==-1:
-            bestaction = min(self.children.items(),key=lambda x: x[1])
+            bestAction = min(self.children.items(),key=lambda x: x[1])
         else:
             raise Exception("getCurrentPlayer() should return 1 or -1 rather than %s"%(CurrentPlayer,))
 
         if needDetails:
-            return {"action": bestaction[0], "expectedReward": bestaction[1]}
+            return {"action": bestAction[0], "expectedReward": bestAction[1]}
         else:
-            return bestaction[0]"""
+            return bestAction[0]"""
 
-    def alphabeta(self, node, deep, alpha, beta):
+    def alphabeta(self, node, deep, alpha, beta, killers = {}):
         if deep==0 or node.isTerminal():
             self.counter += 1
-            return self.rollout(node)
+            return self.rollout(node),[]
 
         CurrentPlayer=node.getCurrentPlayer()
+        actions = node.getPossibleActions()
+        actions.sort(key=lambda x: killers.get(x,-1),reverse=True)
+        subkillers = {}
+        bestactions = []
         if CurrentPlayer == 1:
             maxeval = -1*self.gameinf
-            actions = node.getPossibleActions()
             for action in actions:
-                val = self.alphabeta(node.takeAction(action), deep-1, alpha, beta)
-                maxeval = max(val, maxeval)
+                val,ks = self.alphabeta(node.takeAction(action), deep-1, alpha, beta, killers = subkillers)
+                maxeval = max(val,maxeval)
                 alpha = max(val, alpha)
+                bestactions.append((action,val))
                 if beta <= alpha:
                     break
-            return maxeval
+                for k in ks:
+                    subkillers[k] = subkillers.setdefault(k,0) + 1
+            bestactions.sort(key=lambda x: x[1],reverse=True)
+            bestactions = [i[0] for i in bestactions[0:min(len(bestactions),self.n_killer)]]
+            return maxeval,bestactions
         elif CurrentPlayer == -1:
             mineval = self.gameinf
-            actions = node.getPossibleActions()
             for action in actions:
-                val = self.alphabeta(node.takeAction(action), deep-1, alpha, beta)
+                val,ks = self.alphabeta(node.takeAction(action), deep-1, alpha, beta, killers = subkillers)
                 mineval = min(val, mineval)
                 beta = min(val, beta)
+                bestactions.append((action,val))
                 if beta <= alpha:
                     break
-            return mineval
+                for k in ks:
+                    subkillers[k] = subkillers.setdefault(k,0) + 1
+            bestactions.sort(key=lambda x: x[1])
+            bestactions = [i[0] for i in bestactions[0:min(len(bestactions),self.n_killer)]]
+            return mineval,bestactions
         else:
             raise Exception("getCurrentPlayer() should return 1 or -1 rather than %s"%(CurrentPlayer,))

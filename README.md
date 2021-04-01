@@ -49,8 +49,9 @@ bestAction=searcher.search(initialState)
 
 The parameters for `abpruning`'s construction function are
 
-* deep      : search deepth;
-* gameinf   : an upper bound of getReward() return values, used as "inf" in algorithm.
+* deep         : search deepth;
+* n_killer     : number of killers in killer heuristic optimization, default is 2;
+* gameinf      : an upper bound of getReward() return values, used as "inf" in algorithm, default 65535.
 
 After `search()` is called, details of children can be found in `searcher.children`, and `searcher.counter` records how many leaf nodes are visited. `searcher.children` is a dictinary looks like {action:value}.
 
