@@ -1,0 +1,2 @@
+class ChessState():
+    pass

@@ -37,6 +37,24 @@ print(resultDict.keys()) #currently includes dict_keys(['action', 'expectedRewar
 
 See [naughtsandcrosses.py](https://github.com/pbsinclair42/MCTS/blob/master/naughtsandcrosses.py) for a simple example.
 
+### Alpha-Beta Pruning
+
+The use of alpha-beta pruning is almost the same as MCTS. The only different is that `getReward()` is needed for all states.
+
+```python
+from mcts import abpruning
+searcher=abpruning(deep=3)
+bestAction=searcher.search(initialState)
+```
+
+The parameters for `abpruning`'s construction function are
+
+* deep         : search deepth;
+* n_killer     : number of killers in killer heuristic optimization, default is 2;
+* gameinf      : an upper bound of getReward() return values, used as "inf" in algorithm, default 65535.
+
+After `search()` is called, details of children can be found in `searcher.children`, and `searcher.counter` records how many leaf nodes are visited. `searcher.children` is a dictinary looks like {action:value}.
+
 ## Slow Usage
 
 ### Write Your Own Policy
