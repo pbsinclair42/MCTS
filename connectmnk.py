@@ -219,6 +219,16 @@ def main():
     (m, n, k) = random.choice(runnableGames)
     currentState = ConnectMNKState(mColumns=m, nRows=n, kConnections=k)
 
+    print()
+    print(f"Connect m={m} n={n} k={k}")
+    
+    print()
+    for player in sorted(playerNames.keys()):
+        print(f"player {playerNames[player]} = {player} = {playerSearcherNames[player]}")
+         
+    print()
+    _ = input("main: press enter to start")
+
     turn = 0
     currentState.show()
     while not currentState.isTerminal():
@@ -252,6 +262,9 @@ def main():
         print(f"Connect(m={m},n={n},k={k}) game terminates;" +
               f" player {playerNames[player]}={player} ({searcherName}) wins" +
               f" with pattern {currentState.winingPattern}")
+
+    print()
+    _ = input("main: done ; press enter to terminate")
 
 
 if __name__ == "__main__":
