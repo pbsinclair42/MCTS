@@ -15,6 +15,7 @@ class ConnectMNKState:
     to place, and q stones for the first player to place for the first move
     only. Each player may play only at the lowest unoccupied place in a column.
     In particular, Connect(m,n,6,2,1) is called Connect6.
+    (see also https://en.wikipedia.org/wiki/Gomoku#Theoretical_generalizations)
     """
 
     playerNames = {1:'O', -1:'X'}
