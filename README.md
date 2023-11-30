@@ -35,7 +35,8 @@ resultDict = searcher.search(initialState=initialState, needDetails=True)
 print(resultDict.keys()) #currently includes dict_keys(['action', 'expectedReward'])
 ```
 
-See [naughtsandcrosses.py](https://github.com/pbsinclair42/MCTS/blob/master/naughtsandcrosses.py) for a simple example.
+See [naughtsandcrosses.py](./naughtsandcrosses.py) for a simple example.
+See also [connectmnk.py](./connectmnk.py) for an example running a full game bewteen two MCTS agents.
 
 ## Slow Usage
 //TODO
